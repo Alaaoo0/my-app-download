@@ -69,10 +69,41 @@ color:#17120a;
 border:0;
 }
 
+.download:disabled{
+opacity:.6;
+cursor:wait;
+}
+
 .share{
 background:#187b55;
 color:white;
 border:0;
+}
+
+.counter{
+margin-top:22px;
+padding:16px;
+border:1px solid #d8ad4b55;
+border-radius:15px;
+background:#0003;
+}
+
+.counter-title{
+color:#e1e6ef;
+font-size:15px;
+}
+
+.counter-number{
+font-size:32px;
+font-weight:bold;
+color:#f5c75e;
+margin-top:8px;
+}
+
+.counter-note{
+font-size:11px;
+color:#8995a8;
+margin-top:5px;
 }
 
 .info{
@@ -106,10 +137,16 @@ alt="My App">
 اكتشف أجمل القصص واستمتع بتجربة قراءة مميزة.
 </p>
 
-<a class="download"
+<a class="download" id="downloadBtn"
 href="https://github.com/Alaaoo0/my-app-download/releases/download/v1.0.0/my_app__v1.0.0.APK">
 ⬇ تحميل التطبيق الآن
 </a>
+
+<div class="counter">
+<div class="counter-title">📥 إجمالي ضغطات التحميل</div>
+<div class="counter-number" id="downloadCount">...</div>
+<div class="counter-note">عدد مرات الضغط على زر التحميل</div>
+</div>
 
 <button class="share" onclick="shareApp()">
 📤 مشاركة التطبيق
@@ -128,6 +165,72 @@ Android | الحجم 8.85 MB
 </div>
 
 <script>
+const COUNTER_KEY = "my_app_downloads_alaaoo0";
+
+const COUNTER_URL =
+"https://countapi.mileshilliard.com/api/v1/";
+
+async function updateCounter(){
+
+const display = document.getElementById("downloadCount");
+
+try{
+const response = await fetch(
+COUNTER_URL + "get/" + COUNTER_KEY
+);
+
+if(!response.ok) throw new Error("Counter unavailable");
+
+const data = await response.json();
+
+if(data.error) throw new Error(data.error);
+
+display.textContent =
+Number(data.value).toLocaleString("en-US");
+
+}catch(error){
+display.textContent = "غير متاح حالياً";
+console.error("Counter error:",error);
+}
+
+}
+
+document.getElementById("downloadBtn")
+.addEventListener("click",async function(event){
+
+event.preventDefault();
+
+const button = this;
+const downloadUrl = button.href;
+
+button.textContent = "⏳ جاري تجهيز التحميل...";
+button.style.pointerEvents = "none";
+
+try{
+
+const response = await fetch(
+COUNTER_URL + "hit/" + COUNTER_KEY
+);
+
+if(!response.ok) throw new Error("Counter failed");
+
+const data = await response.json();
+
+if(data.error) throw new Error(data.error);
+
+document.getElementById("downloadCount").textContent =
+Number(data.value).toLocaleString("en-US");
+
+}catch(error){
+
+console.error("Counter error:",error);
+
+}
+
+window.location.href = downloadUrl;
+
+});
+
 async function shareApp(){
 
 const shareData={
@@ -150,6 +253,8 @@ alert("تعذرت المشاركة، حاول مرة ثانية");
 }
 
 }
+
+updateCounter();
 </script>
 
 </body>
